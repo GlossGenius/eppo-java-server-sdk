@@ -1,7 +1,6 @@
 package com.eppo.sdk.dto;
 
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 
 /**
  * Experiment's Variation Class
