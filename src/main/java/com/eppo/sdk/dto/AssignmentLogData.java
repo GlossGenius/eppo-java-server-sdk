@@ -34,7 +34,7 @@ public class AssignmentLogData {
         this.allocation = allocation;
         this.variationName = variationName;
         this.variationValue = variationValue;
-        this.variation = variationValue.toString();
+        this.variation = variationValue.stringValue();
         this.timestamp = new Date();
         this.subject = subject;
         this.subjectAttributes = subjectAttributes;
