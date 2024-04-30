@@ -5,6 +5,7 @@ import com.eppo.sdk.dto.ExperimentConfigurationResponse;
 import com.eppo.sdk.exception.ExperimentConfigurationNotFound;
 import com.eppo.sdk.exception.NetworkException;
 import com.eppo.sdk.exception.NetworkRequestNotAllowed;
+import lombok.extern.slf4j.Slf4j;
 import org.ehcache.Cache;
 
 import java.util.Map;
@@ -13,6 +14,7 @@ import java.util.Optional;
 /**
  * Configuration Store Class
  */
+@Slf4j
 public class ConfigurationStore {
     Cache<String, ExperimentConfiguration> experimentConfigurationCache;
     ExperimentConfigurationRequestor experimentConfigurationRequestor;
@@ -92,6 +94,9 @@ public class ConfigurationStore {
 
         if (!response.isEmpty()) {
             for (Map.Entry<String, ExperimentConfiguration> entry : response.get().getFlags().entrySet()) {
+
+                log.info("[Eppo SDK] Fetched configuration key=[" + entry.getKey() + "], value=[" + entry.getValue() + "]");
+
                 this.setExperimentConfiguration(entry.getKey(), entry.getValue());
             }
         }
