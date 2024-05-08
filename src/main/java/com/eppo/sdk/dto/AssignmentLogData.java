@@ -11,8 +11,7 @@ public class AssignmentLogData {
     public String experiment;
     public String featureFlag;
     public String allocation;
-    public String variation;
-    public EppoValue variationValue;
+    public EppoValue variation;
     public Date timestamp;
     public String subject;
     public SubjectAttributes subjectAttributes;
@@ -21,15 +20,14 @@ public class AssignmentLogData {
             String experiment,
             String featureFlag,
             String allocation,
-            EppoValue variationValue,
+            EppoValue variation,
             String subject,
             SubjectAttributes subjectAttributes
     ) {
         this.experiment = experiment;
         this.featureFlag = featureFlag;
         this.allocation = allocation;
-        this.variationValue = variationValue;
-        this.variation = variationValue.stringValue();
+        this.variation = variation;
         this.timestamp = new Date();
         this.subject = subject;
         this.subjectAttributes = subjectAttributes;
