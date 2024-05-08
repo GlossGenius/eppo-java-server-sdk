@@ -6,12 +6,10 @@ import java.util.Date;
  * Assignment Log Data Class
  */
 public class AssignmentLogData {
-    public static final String OVERRIDE_ALLOCATION_KEY = "override";
-
     public String experiment;
     public String featureFlag;
     public String allocation;
-    public EppoValue variation;
+    public String variation;
     public Date timestamp;
     public String subject;
     public SubjectAttributes subjectAttributes;
@@ -20,7 +18,7 @@ public class AssignmentLogData {
             String experiment,
             String featureFlag,
             String allocation,
-            EppoValue variation,
+            String variation,
             String subject,
             SubjectAttributes subjectAttributes
     ) {
