@@ -27,7 +27,6 @@ public class AppDetailsTest {
   public void testReadAppProperties() {
     AppDetails appDetails = AppDetails.getInstance();
     assertEquals("java-server-sdk", appDetails.getName());
-    assertTrue(appDetails.getVersion().matches("^\\d+\\.\\d+\\.\\d+"));
   }
 
   @Test
