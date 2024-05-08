@@ -47,51 +47,6 @@ public class EppoClient {
             EppoAttributes subjectAttributes,
             Map<String, EppoAttributes> actionsWithAttributes
     ) {
-        Optional<Variation> assignedVariation = getAssignmentVariation(
-                subjectKey,
-                flagKey,
-                subjectAttributes,
-                actionsWithAttributes
-        );
-
-        if (assignedVariation.isPresent()) {
-            return Optional.of(assignedVariation.get().getTypedValue());
-        }
-
-        return Optional.empty();
-    }
-
-    /**
-     * Returns the assigned variation.
-     *
-     * @param subjectKey
-     * @param flagKey
-     * @param subjectAttributes
-     * @return
-     */
-    public Optional<Variation> getAssignmentVariation(
-            String subjectKey,
-            String flagKey,
-            EppoAttributes subjectAttributes
-    ) {
-        return getAssignmentVariation(subjectKey, flagKey, subjectAttributes, null);
-    }
-
-    /**
-     * Returns the assigned variation.
-     *
-     * @param subjectKey
-     * @param flagKey
-     * @param subjectAttributes
-     * @param actionsWithAttributes
-     * @return
-     */
-    protected Optional<Variation> getAssignmentVariation(
-            String subjectKey,
-            String flagKey,
-            EppoAttributes subjectAttributes,
-            Map<String, EppoAttributes> actionsWithAttributes
-    ) {
         // Validate Input Values
         InputValidator.validateNotBlank(subjectKey, "Invalid argument: subjectKey cannot be blank");
         InputValidator.validateNotBlank(flagKey, "Invalid argument: flagKey cannot be blank");
@@ -113,11 +68,10 @@ public class EppoClient {
 
         if (algorithmType == AlgorithmType.OVERRIDE) {
             // Assigned variation was from an override; return its value without logging
-            return Optional.of(assignedVariation);
+            return assignmentValue;
         } else if (algorithmType == AlgorithmType.CONTEXTUAL_BANDIT) {
             // Assigned variation is a bandit; need to use the bandit to determine its value
-            Optional<EppoValue> banditValue = this.determineAndLogBanditAction(assignmentResult, actionsWithAttributes);
-            assignedVariation.setTypedValue(banditValue.orElse(null));
+            assignmentValue = this.determineAndLogBanditAction(assignmentResult, actionsWithAttributes);
         }
 
         // Log the assignment
@@ -134,7 +88,7 @@ public class EppoClient {
             log.warn("Error logging assignment", e);
         }
 
-        return Optional.of(assignedVariation);
+        return assignmentValue;
     }
 
     private VariationAssignmentResult getAssignedVariation(String flagKey, String subjectKey, EppoAttributes subjectAttributes) {
