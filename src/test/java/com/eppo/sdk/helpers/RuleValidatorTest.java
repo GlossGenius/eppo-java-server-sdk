@@ -35,6 +35,21 @@ class RuleValidatorTest {
         addConditionToRule(rule, condition2);
     }
 
+    public void addSemVerConditionToRule(Rule rule) {
+        Condition condition1 = new Condition();
+        condition1.value = EppoValue.valueOf("1.5.0");
+        condition1.attribute = "version";
+        condition1.operator = OperatorType.GTE;
+
+        Condition condition2 = new Condition();
+        condition2.value = EppoValue.valueOf("2.2.0");
+        condition2.attribute = "version";
+        condition2.operator = OperatorType.LT;
+
+        addConditionToRule(rule, condition1);
+        addConditionToRule(rule, condition2);
+    }
+
     public void addRegexConditionToRule(Rule rule) {
         Condition condition = new Condition();
         condition.value = EppoValue.valueOf("[a-z]+");
@@ -68,11 +83,11 @@ class RuleValidatorTest {
         addConditionToRule(rule, condition);
     }
 
-    public void addNameToSubjectAttribute(SubjectAttributes subjectAttributes) {
+    public void addNameToSubjectAttribute(EppoAttributes subjectAttributes) {
         subjectAttributes.put("name", EppoValue.valueOf("test"));
     }
 
-    public void addPriceToSubjectAttribute(SubjectAttributes subjectAttributes) {
+    public void addPriceToSubjectAttribute(EppoAttributes subjectAttributes) {
         subjectAttributes.put("price", EppoValue.valueOf("30"));
     }
 
@@ -82,20 +97,21 @@ class RuleValidatorTest {
         List<Rule> rules = new ArrayList<>();
         final Rule ruleWithEmptyConditions = createRule(new ArrayList<>());
         rules.add(ruleWithEmptyConditions);
-        SubjectAttributes subjectAttributes = new SubjectAttributes();
+        EppoAttributes subjectAttributes = new EppoAttributes();
         addNameToSubjectAttribute(subjectAttributes);
 
-        Assertions.assertEquals(ruleWithEmptyConditions, RuleValidator.findMatchingRule(subjectAttributes, rules).get());
+        Assertions.assertEquals(ruleWithEmptyConditions,
+                RuleValidator.findMatchingRule(subjectAttributes, rules).get());
     }
 
     @DisplayName("findMatchingRule() with empty rules")
     @Test
     void testMatchesAnyRuleWithEmptyRules() {
         List<Rule> rules = new ArrayList<>();
-        SubjectAttributes subjectAttributes = new SubjectAttributes();
+        EppoAttributes subjectAttributes = new EppoAttributes();
         addNameToSubjectAttribute(subjectAttributes);
 
-        Assertions.assertTrue(RuleValidator.findMatchingRule(subjectAttributes, rules).isEmpty());
+        Assertions.assertFalse(RuleValidator.findMatchingRule(subjectAttributes, rules).isPresent());
     }
 
     @DisplayName("findMatchingRule() when no rule matches")
@@ -106,10 +122,10 @@ class RuleValidatorTest {
         addNumericConditionToRule(rule);
         rules.add(rule);
 
-        SubjectAttributes subjectAttributes = new SubjectAttributes();
+        EppoAttributes subjectAttributes = new EppoAttributes();
         addPriceToSubjectAttribute(subjectAttributes);
 
-        Assertions.assertTrue(RuleValidator.findMatchingRule(subjectAttributes, rules).isEmpty());
+        Assertions.assertFalse(RuleValidator.findMatchingRule(subjectAttributes, rules).isPresent());
     }
 
     @DisplayName("findMatchingRule() when rule matches")
@@ -120,8 +136,22 @@ class RuleValidatorTest {
         addNumericConditionToRule(rule);
         rules.add(rule);
 
-        SubjectAttributes subjectAttributes = new SubjectAttributes();
+        EppoAttributes subjectAttributes = new EppoAttributes();
         subjectAttributes.put("price", EppoValue.valueOf(15));
+
+        Assertions.assertEquals(rule, RuleValidator.findMatchingRule(subjectAttributes, rules).get());
+    }
+
+    @DisplayName("findMatchingRule() when rule matches with semver")
+    @Test
+    void testMatchesAnyRuleWhenRuleMatchesWithSemVer() {
+        List<Rule> rules = new ArrayList<>();
+        Rule rule = createRule(new ArrayList<>());
+        addSemVerConditionToRule(rule);
+        rules.add(rule);
+
+        EppoAttributes subjectAttributes = new EppoAttributes();
+        subjectAttributes.put("version", EppoValue.valueOf("1.15.5"));
 
         Assertions.assertEquals(rule, RuleValidator.findMatchingRule(subjectAttributes, rules).get());
     }
@@ -134,11 +164,10 @@ class RuleValidatorTest {
         addNumericConditionToRule(rule);
         rules.add(rule);
 
-        SubjectAttributes subjectAttributes = new SubjectAttributes();
+        EppoAttributes subjectAttributes = new EppoAttributes();
         subjectAttributes.put("price", EppoValue.valueOf("abcd"));
 
-
-        Assertions.assertTrue(RuleValidator.findMatchingRule(subjectAttributes, rules).isEmpty());
+        Assertions.assertFalse(RuleValidator.findMatchingRule(subjectAttributes, rules).isPresent());
     }
 
     @DisplayName("findMatchingRule() with regex condition")
@@ -149,7 +178,7 @@ class RuleValidatorTest {
         addRegexConditionToRule(rule);
         rules.add(rule);
 
-        SubjectAttributes subjectAttributes = new SubjectAttributes();
+        EppoAttributes subjectAttributes = new EppoAttributes();
         subjectAttributes.put("match", EppoValue.valueOf("abcd"));
 
         Assertions.assertEquals(rule, RuleValidator.findMatchingRule(subjectAttributes, rules).get());
@@ -163,10 +192,10 @@ class RuleValidatorTest {
         addRegexConditionToRule(rule);
         rules.add(rule);
 
-        SubjectAttributes subjectAttributes = new SubjectAttributes();
+        EppoAttributes subjectAttributes = new EppoAttributes();
         subjectAttributes.put("match", EppoValue.valueOf("123"));
 
-        Assertions.assertTrue(RuleValidator.findMatchingRule(subjectAttributes, rules).isEmpty());
+        Assertions.assertFalse(RuleValidator.findMatchingRule(subjectAttributes, rules).isPresent());
     }
 
     @DisplayName("findMatchingRule() with not oneOf rule")
@@ -177,7 +206,7 @@ class RuleValidatorTest {
         addNotOneOfCondition(rule);
         rules.add(rule);
 
-        SubjectAttributes subjectAttributes = new SubjectAttributes();
+        EppoAttributes subjectAttributes = new EppoAttributes();
         subjectAttributes.put("oneOf", EppoValue.valueOf("value3"));
 
         Assertions.assertEquals(rule, RuleValidator.findMatchingRule(subjectAttributes, rules).get());
@@ -191,10 +220,10 @@ class RuleValidatorTest {
         addNotOneOfCondition(rule);
         rules.add(rule);
 
-        SubjectAttributes subjectAttributes = new SubjectAttributes();
+        EppoAttributes subjectAttributes = new EppoAttributes();
         subjectAttributes.put("oneOf", EppoValue.valueOf("value1"));
 
-        Assertions.assertTrue(RuleValidator.findMatchingRule(subjectAttributes, rules).isEmpty());
+        Assertions.assertFalse(RuleValidator.findMatchingRule(subjectAttributes, rules).isPresent());
     }
 
 }
