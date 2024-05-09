@@ -1,9 +1,8 @@
 package com.eppo.sdk.helpers;
 
 import com.eppo.sdk.dto.EppoValue;
-import com.eppo.sdk.dto.EppoAttributes;
+import com.eppo.sdk.dto.SubjectAttributes;
 import com.eppo.sdk.exception.InvalidSubjectAttribute;
-import com.github.zafarkhaja.semver.Version;
 import com.eppo.sdk.dto.Condition;
 import com.eppo.sdk.dto.Rule;
 
@@ -25,6 +24,18 @@ interface IConditionFunc<T> {
  * Compare Class
  */
 class Compare {
+    /**
+     * This function is used to compare number
+     *
+     * @param a
+     * @param b
+     * @param conditionFunc
+     * @return
+     */
+    public static boolean compareNumber(double a, double b, IConditionFunc<Double> conditionFunc) {
+        return conditionFunc.check(a, b);
+    }
+
     /**
      * This function is used to compare Regex
      *
@@ -63,7 +74,7 @@ public class RuleValidator {
      * @return
      */
     public static Optional<Rule> findMatchingRule(
-            EppoAttributes subjectAttributes,
+            SubjectAttributes subjectAttributes,
             List<Rule> rules
     ) {
         for (Rule rule : rules) {
@@ -83,7 +94,7 @@ public class RuleValidator {
      * @throws InvalidSubjectAttribute
      */
     private static boolean matchesRule(
-            EppoAttributes subjectAttributes,
+            SubjectAttributes subjectAttributes,
             Rule rule
     ) throws InvalidSubjectAttribute {
         List<Boolean> conditionEvaluations = RuleValidator.evaluateRuleConditions(subjectAttributes, rule.getConditions());
@@ -99,59 +110,24 @@ public class RuleValidator {
      * @throws InvalidSubjectAttribute
      */
     private static boolean evaluateCondition(
-            EppoAttributes subjectAttributes,
+            SubjectAttributes subjectAttributes,
             Condition condition
     ) throws InvalidSubjectAttribute {
         if (subjectAttributes.containsKey(condition.attribute)) {
             EppoValue value = subjectAttributes.get(condition.attribute);
-            Optional<Version> valueSemVer = Version.tryParse(value.stringValue());
-            Optional<Version> conditionSemVer = Version.tryParse(condition.value.stringValue());
-
             try {
                 switch (condition.operator) {
                     case GTE:
-                        if (value.isNumeric() && condition.value.isNumeric()) {
-                            return value.doubleValue() >= condition.value.doubleValue();
-                        }
-
-                        if (valueSemVer.isPresent() && conditionSemVer.isPresent()) {
-                            return valueSemVer.get().isHigherThanOrEquivalentTo(conditionSemVer.get());
-                        }
-
-                        return false;
+                        return Compare.compareNumber(value.doubleValue(), condition.value.doubleValue()
+                                , (a, b) -> a >= b);
                     case GT:
-                        if (value.isNumeric() && condition.value.isNumeric()) {
-                            return value.doubleValue() > condition.value.doubleValue();
-                        }
-
-                        if (valueSemVer.isPresent() && conditionSemVer.isPresent()) {
-                            return valueSemVer.get().isHigherThan(conditionSemVer.get());
-                        }
-
-                        return false;
+                        return Compare.compareNumber(value.doubleValue(), condition.value.doubleValue(), (a, b) -> a > b);
                     case LTE:
-                        if (value.isNumeric() && condition.value.isNumeric()) {
-                            return value.doubleValue() <= condition.value.doubleValue();
-                        }
-
-                        if (valueSemVer.isPresent() && conditionSemVer.isPresent()) {
-                            return valueSemVer.get().isLowerThanOrEquivalentTo(conditionSemVer.get());
-                        }
-
-                        return false;
+                        return Compare.compareNumber(value.doubleValue(), condition.value.doubleValue(), (a, b) -> a <= b);
                     case LT:
-                        if (value.isNumeric() && condition.value.isNumeric()) {
-                            return value.doubleValue() < condition.value.doubleValue();
-                        }
-
-                        if (valueSemVer.isPresent() && conditionSemVer.isPresent()) {
-                            return valueSemVer.get().isLowerThan(conditionSemVer.get());
-                        }
-
-                        return false;
+                        return Compare.compareNumber(value.doubleValue(), condition.value.doubleValue(), (a, b) -> a < b);
                     case MATCHES:
-                        return Compare.compareRegex(value.stringValue(),
-                                Pattern.compile(condition.value.stringValue()));
+                        return Compare.compareRegex(value.stringValue(), Pattern.compile(condition.value.stringValue()));
                     case ONE_OF:
                         return Compare.isOneOf(value.stringValue(), condition.value.arrayValue());
                     case NOT_ONE_OF:
@@ -174,7 +150,7 @@ public class RuleValidator {
      * @throws InvalidSubjectAttribute
      */
     private static List<Boolean> evaluateRuleConditions(
-            EppoAttributes subjectAttributes,
+            SubjectAttributes subjectAttributes,
             List<Condition> conditions
     ) throws InvalidSubjectAttribute {
         return conditions.stream()

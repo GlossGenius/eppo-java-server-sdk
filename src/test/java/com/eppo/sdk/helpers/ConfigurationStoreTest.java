@@ -11,15 +11,9 @@ class ConfigurationStoreTest {
 
     ConfigurationStore createConfigurationStore(
             Cache<String, ExperimentConfiguration> experimentConfigurationCache,
-            ConfigurationRequestor requestor
+            ExperimentConfigurationRequestor requestor
     ) {
-        return new ConfigurationStore(
-          experimentConfigurationCache,
-          requestor,
-          // This test doesn't check bandit cache
-          null,
-          null
-        );
+        return new ConfigurationStore(experimentConfigurationCache, requestor);
     }
 
     Cache<String, ExperimentConfiguration> createExperimentConfigurationCache(int maxEntries) {
@@ -32,7 +26,7 @@ class ConfigurationStoreTest {
     @Test()
     void testSetExperimentConfiguration() {
         Cache<String, ExperimentConfiguration> cache = createExperimentConfigurationCache(10);
-        ConfigurationRequestor requestor = Mockito.mock(ConfigurationRequestor.class);
+        ExperimentConfigurationRequestor requestor = Mockito.mock(ExperimentConfigurationRequestor.class);
 
         ConfigurationStore store = createConfigurationStore(cache, requestor);
         store.setExperimentConfiguration("key1", new ExperimentConfiguration());
