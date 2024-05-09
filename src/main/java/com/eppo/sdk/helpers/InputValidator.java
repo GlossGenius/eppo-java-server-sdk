@@ -14,7 +14,7 @@ public class InputValidator {
      * @throws InvalidInputException
      */
     public static boolean validateNotBlank(String input, String errorMsg) throws InvalidInputException {
-        if (input.trim().isEmpty()) {
+        if (input.isBlank()) {
             throw new InvalidInputException(errorMsg);
         }
 
